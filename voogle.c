@@ -21,7 +21,6 @@ FILE * fp_niv ;
 
 char * read_a_line  		();
 
-
 int num_of_digit			(int num);
 
 // functions related with command
@@ -47,17 +46,17 @@ int identify_types			(char com[]);
 
 bool check_types			(char s[], char* comms[], int words_num);
 
-bool check_type1			(char s[], char com[]); //  token
+bool check_type1			(char s[], char com[]); 	//  token
 
-bool check_type2			(char s[], char com[]); //  token*
+bool check_type2			(char s[], char com[]); 	//  token*
 
-bool check_type3			(char s[], char com[]); //  -token
+bool check_type3			(char s[], char com[]); 	//  -token
 
-bool check_type4			(char s[], char com[]); //  "token"
+bool check_type4			(char s[], char com[]); 	//  "token"
 
-bool check_type5			(char s[], char com[]); //  chapter
+bool check_type5			(char s[], char com[]); 	//  chapter
 
-bool check_type6			(char s[], char com[]); //  book
+bool check_type6			(char s[], char com[]); 	//  book
 
 
 // functions related with printing 
@@ -251,13 +250,13 @@ int identify_types			(char com[]){
 
 	else if(strstr(com,"book") != NULL) return BOOK;
 
-	else if(strstr(com,"\"") != NULL) return STRING;
+	else if(strchr(com,'\"') != NULL) return STRING;
 
-	else if(strstr(com,"-") != NULL) return NOT_CORRES;
+	else if(strchr(com,'-') != NULL) return NOT_CORRES;
 
-	else if(strstr(com,"*") != NULL) return PREFIX;
+	else if(strchr(com,'*') != NULL) return PREFIX;
 
-	else if(strstr("$",com) != NULL) return END;
+	else if(strchr(com,'$') != NULL) return END;
 
 	else return CORRES;
 }
@@ -288,8 +287,7 @@ bool check_type1			(char s[], char com[]){
 
 bool check_type2			(char s[], char com[]){
 
-	char com_copy[100];
-	char s_copy[1000];
+	char com_copy[100], s_copy[1000];
 	int com_len = strlen(com);
 	
 	strncpy(com_copy,com,com_len-1);
@@ -343,6 +341,7 @@ bool check_type3			(char s[], char com[]){
 	char *ptr = strtok(s_copy, " ");    //첫번째 strtok 사용.
 	
 	while (ptr != NULL)              //ptr이 NULL일때까지 (= strtok 함수가 NULL을 반환할때까지)
+	
 	{
 		if(strcmp(ptr,com_copy) == 0){
 
