@@ -201,16 +201,52 @@ bool command_checking		(char* com[], int words_num){
 
 	for(int i = 0; i < words_num; i++){
 
-		if( strstr(com[i],"book") != NULL ){
+		if(strchr(com[i],':') != NULL && strchr(com[i],'"') == NULL ){
+
+			if(com[i][strlen(com[i])-1] == ':') 
+				return false;
+
 
 			strcpy(book_c,com[i]);
 
 			ptr = strtok(book_c,":");
-			ptr = strtok(NULL,":");
 
-			result = atoi(ptr);
 
-			if(strlen(ptr) != num_of_digit(result) && result == 0) return false;
+			if(strcmp(ptr,"book") != 0 && strcmp(ptr,"chapter") != 0) 
+				return false;
+				
+			
+
+			if( strstr(com[i],"book:") != NULL){
+
+				
+
+				strcpy(book_c,com[i]);
+
+				ptr = strtok(book_c,":");
+				ptr = strtok(NULL,":");
+
+				result = atoi(ptr);
+
+				if(result != 0) 	
+					return false;
+				
+				
+			}
+
+			else if( strstr(com[i],"chapter:") != NULL){
+
+				strcpy(book_c,com[i]);
+
+				ptr = strtok(book_c,":");
+				ptr = strtok(NULL,":");
+
+				result = atoi(ptr);
+
+				if(strlen(ptr) != num_of_digit(result) || result == 0)
+					return false;
+					
+			}
 		}
 	}
 
@@ -246,9 +282,9 @@ void content_tolower		(char s[]){
 
 int identify_types			(char com[]){
 
-	if(strstr(com,"chapter") != NULL) return CHAPTER;
+	if(strstr(com,"chapter") != NULL   && strchr(com,':') != NULL) return CHAPTER;
 
-	else if(strstr(com,"book") != NULL) return BOOK;
+	else if(strstr(com,"book") != NULL && strchr(com,':') != NULL) return BOOK;
 
 	else if(strchr(com,'\"') != NULL) return STRING;
 
@@ -380,29 +416,6 @@ bool check_type4			(char s[], char com[]){
 
 bool check_type5			(char s[], char com[]){
 
-	char com_copy[100], s_copy[1000];
-
-	strcpy(s_copy,s);
-
-	s_copy[strlen(s_copy)] = '\0';
-
-	char *ptr_s = strtok(s_copy, " "); 
-
-	strcpy(com_copy,com);
-
-	com_copy[strlen(com_copy)] = '\0';
-
-	char *ptr_c = strtok(com_copy,":");
-
-	ptr_c = strtok(NULL," ");
-
-	if(strcmp(ptr_s,ptr_c) == 0) return true;
-
-	return false;
-}
-
-bool check_type6			(char s[], char com[]){
-
 
 	char s_copy[1000], com_copy[100];;
 
@@ -425,6 +438,29 @@ bool check_type6			(char s[], char com[]){
 	ptr2 = strtok(NULL," ");
 
 	if(strcmp(ptr1,ptr2) == 0) return true;
+
+	return false;
+}
+
+bool check_type6			(char s[], char com[]){
+
+	char com_copy[100], s_copy[1000];
+
+	strcpy(s_copy,s);
+
+	s_copy[strlen(s_copy)] = '\0';
+
+	char *ptr_s = strtok(s_copy, " "); 
+
+	strcpy(com_copy,com);
+
+	com_copy[strlen(com_copy)] = '\0';
+
+	char *ptr_c = strtok(com_copy,":");
+
+	ptr_c = strtok(NULL," ");
+
+	if(strcmp(ptr_s,ptr_c) == 0) return true;
 
 	return false;
 }
