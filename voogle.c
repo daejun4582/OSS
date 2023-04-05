@@ -19,33 +19,52 @@ enum ComType
 
 FILE * fp_niv ;
 
-char * read_a_line ();
 
-void command_replace(char str[]);
+char * read_a_line  		();
 
-void command_tokenize(char str[],char** a,int *word);
 
-void command_preprocessing(char* com[],int len);
+int num_of_digit			(int num);
 
-void command_print_all(char *a[], int l);
+// functions related with command
 
-void content_tolower(char s[]);
+void get_command			(char com_str[],char *com[],int *words_num);
 
-int identify_types(char com[]);
+void command_replace		(char str[]);
 
-bool check_types(char s[], char* comms[], int word_num);
+void command_tokenize		(char str[],char** a,int *word);
 
-bool check_type1(char s[], char com[]); //  token
+void command_preprocessing	(char* com[],int words_num);
 
-bool check_type2(char s[], char com[]); //  token*
+void command_print_all		(char *com[], int words_num);
 
-bool check_type3(char s[], char com[]); //  -token
+bool command_checking		(char* com[], int words_num);
 
-bool check_type4(char s[], char com[]); //  "token"
 
-bool check_type5(char s[], char com[]); //  chapter
+// functions related with checking bible content
 
-bool check_type6(char s[], char com[]); //  book
+void content_tolower		(char s[]);
+
+int identify_types			(char com[]);
+
+bool check_types			(char s[], char* comms[], int words_num);
+
+bool check_type1			(char s[], char com[]); //  token
+
+bool check_type2			(char s[], char com[]); //  token*
+
+bool check_type3			(char s[], char com[]); //  -token
+
+bool check_type4			(char s[], char com[]); //  "token"
+
+bool check_type5			(char s[], char com[]); //  chapter
+
+bool check_type6			(char s[], char com[]); //  book
+
+
+// functions related with printing 
+
+void print_bible			(char *com[],int words_num);
+
 
 /*
 	example : abraham* isaac -easu " and " book:8 chapter:Mat ^D
@@ -54,51 +73,46 @@ bool check_type6(char s[], char com[]); //  book
 
 int main (int argc, char ** argv)
 {
-	fp_niv = fopen("NIV.txt", "r") ;
 
-	char * s = 0x0 ;     
-	int cnt = 0;
-	int word_num;
+	int words_num;
+
 	char* command_tokenes[8];
-	char temp[1000];
-	char com_str[1000];
 
-	printf("명령어를 입력해주세요 : ");
+	char temp[1000], com_str[1000];
 
-	fgets(com_str,1000,stdin);
+	get_command(com_str,command_tokenes,&words_num);
 
-	com_str[strlen(com_str)-1] = '\0';
-	
-	command_replace(com_str);
+	command_preprocessing(command_tokenes,words_num);
 
-	command_tokenize(com_str,command_tokenes,&word_num);
+	command_print_all(command_tokenes,words_num);
 
-	command_preprocessing(command_tokenes,word_num);
-
-	command_print_all(command_tokenes,word_num);
-
-	printf("\n일치한 구절을 출력하겠습니다. \n\n");
-	
-	while ((s = read_a_line())) {
-		
-		
-		if(check_types(s,command_tokenes, word_num)) {
-			cnt++;
-			printf("[%d] %s\n",cnt,s);
-		}
-
-		free(s) ;
-	}
-
-	printf("\n-------------------------------------\n");
-	printf("  총 \"%d\" 개의 구절이 탐색되었습니다. \n",cnt);
-	printf("-------------------------------------\n");
-	fclose(fp_niv) ;
+	print_bible(command_tokenes,words_num);
 
 	return 0;
 }
 
-void command_replace(char str[]){
+
+void get_command			(char com_str[], char *com[], int *words_num){
+
+	while(true){
+
+		printf("명령어를 입력해주세요 : ");
+
+		fgets(com_str,1000,stdin);
+
+		com_str[strlen(com_str)-1] = '\0';
+
+		command_replace(com_str);
+
+		command_tokenize(com_str, com, words_num);
+	
+		if ( !(command_checking(com, *words_num)) ) printf("\n[Warning] 지원하지 않는 명령어 형식입니다. 다시 입력해주세요. \n\n");
+		
+		else break;
+	}
+}
+
+void command_replace		(char str[]){
 	bool flag = false;
 
 	for(int i = 0; i < strlen(str); i++){
@@ -112,43 +126,45 @@ void command_replace(char str[]){
 	}
 }
 
-void command_tokenize(char str[],char** a, int *word){
+void command_tokenize		(char str[],char** a, int *word){
 
 	int idx = 0;
 	char *ptr = strtok(str, " ");    //첫번째 strtok 사용.
-	
 	*(a+idx) = ptr;
 	idx++;
 	
 	while (ptr != NULL)              //ptr이 NULL일때까지 (= strtok 함수가 NULL을 반환할때까지)
 	{
 		ptr = strtok(NULL, " ");     //자른 문자 다음부터 구분자 또 찾기
+		if(ptr == NULL) break;
 		*(a+idx) = ptr;
 		idx++;
-		if(strstr("$",ptr) != NULL) break;
 	}
 	*word = idx;
+
 }
 
-void command_print_all(char *a[], int l){
+void command_print_all		(char *com[], int words_num){
 	printf("\n입력된 명령어는 다음과 같습니다. : | ");
-	for(int i = 0; i < l; i++){
-			printf("%s | ",a[i]);
+	for(int i = 0; i < words_num; i++){
+			printf("%s | ",com[i]);
 	}
 	printf("\n");
 }
 
-void command_preprocessing(char* com[], int len){
-	for(int i = 0; i < len-1; i++){
+void command_preprocessing	(char* com[], int words_num){
+	for(int i = 0; i < words_num; i++){
 		if(strstr(com[i],"\"") != NULL){
 			for(int j = 0; j < strlen(com[i]); j++){
 				if(com[i][j] == '#') com[i][j] = ' '; 
 			}
 		}
 		else{
+
+			if(strstr(com[i],":")!= NULL) continue;
+
 			for(int j = 0; j < strlen(com[i]); j++){
-				if(strstr(com[i],":")!= NULL) continue;
-				else if((com[i][j]) >= 'A' && (com[i][j]) <= 'Z'){
+				if((com[i][j]) >= 'A' && (com[i][j]) <= 'Z'){
 					com[i][j] = tolower(com[i][j]);
 				}
 			}
@@ -156,7 +172,39 @@ void command_preprocessing(char* com[], int len){
 	}
 }
 
-void content_tolower(char s[]){
+bool command_checking		(char* com[], int words_num){
+
+	char book_c[20], *ptr,token;
+	int result;
+
+	for(int i = 0; i < words_num; i++){
+
+		if( strstr(com[i],"book") != NULL ){
+
+			strcpy(book_c,com[i]);
+
+			ptr = strtok(book_c,":");
+			ptr = strtok(NULL,":");
+
+			result = atoi(ptr);
+
+			if(strlen(ptr) != num_of_digit(result) && result == 0) return false;
+		}
+	}
+
+	return true;
+}
+
+int num_of_digit			(int num){
+	int digit = 0;
+	while(num != 0){
+		num = num/10;
+		digit++;
+	}
+	return digit;
+}
+
+void content_tolower		(char s[]){
 	for(int i = 0; i < strlen(s); i++){
 		if((s[i]) >= 'A' && (s[i]) <= 'Z'){
 			s[i] = tolower(s[i]);
@@ -164,7 +212,7 @@ void content_tolower(char s[]){
 	}
 }
 
-int identify_types(char com[]){
+int identify_types			(char com[]){
 	if(strstr(com,"chapter") != NULL) return CHAPTER;
 	else if(strstr(com,"book") != NULL) return BOOK;
 	else if(strstr(com,"\"") != NULL) return STRING;
@@ -174,7 +222,7 @@ int identify_types(char com[]){
 	else return CORRES;
 }
 
-bool check_type1(char s[], char com[]){
+bool check_type1			(char s[], char com[]){
 	int result;
 	char s_copy[1000];
 	strcpy(s_copy,s);
@@ -196,7 +244,7 @@ bool check_type1(char s[], char com[]){
 	return false;
 }
 
-bool check_type2(char s[], char com[]){
+bool check_type2			(char s[], char com[]){
 
 	char com_copy[100];
 	char s_copy[1000];
@@ -224,7 +272,7 @@ bool check_type2(char s[], char com[]){
 
 }
 
-bool check_type3(char s[], char com[]){
+bool check_type3			(char s[], char com[]){
 
 	char com_copy[100];
 	int com_len = strlen(com);
@@ -260,7 +308,7 @@ bool check_type3(char s[], char com[]){
 	return true;
 }
 
-bool check_type4(char s[], char com[]){
+bool check_type4			(char s[], char com[]){
 
 	char a[100];
 	int com_len = strlen(com);
@@ -280,7 +328,7 @@ bool check_type4(char s[], char com[]){
 	return false;
 }
 
-bool check_type5(char s[], char com[]){
+bool check_type5			(char s[], char com[]){
 
 	char com_copy[100];
 	char s_copy[1000];
@@ -303,7 +351,7 @@ bool check_type5(char s[], char com[]){
 	return false;
 }
 
-bool check_type6(char s[], char com[]){
+bool check_type6			(char s[], char com[]){
 
 
 	char s_copy[1000];
@@ -327,7 +375,7 @@ bool check_type6(char s[], char com[]){
 	return false;
 }
 
-bool check_types(char s[], char* comms[], int word_num){
+bool check_types			(char s[], char* comms[], int word_num){
 
 	int type;
 	int result;
@@ -374,7 +422,33 @@ bool check_types(char s[], char* comms[], int word_num){
 
 }
 
-char * read_a_line ()
+void print_bible			(char *com[],int words_num){
+
+	int cnt = 0;
+
+	printf("\n일치한 구절을 출력하겠습니다. \n\n");
+
+	fp_niv = fopen("NIV.txt", "r") ;
+
+	char * s = 0x0 ;     
+	
+	while ((s = read_a_line())) {
+		
+		if(check_types(s,com, words_num)) {
+			cnt++;
+			printf("[%d] %s\n",cnt,s);
+		}
+
+		free(s) ;
+	}
+
+	printf("\n-------------------------------------\n");
+	printf("  총 \"%d\" 개의 구절이 탐색되었습니다. \n",cnt);
+	printf("-------------------------------------\n");
+	fclose(fp_niv);
+}
+
+char * read_a_line 			()
 {
 	static char buf[BUFSIZ] ;
 	static int buf_n = 0 ;
