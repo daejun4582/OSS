@@ -65,7 +65,7 @@ void print_bible			(char *com[],int words_num);
 
 
 /*
-	example : abraham* isaac -easu " and " book:8 chapter:Mat ^D
+	example : abraham* isaac -easu " and " book:Mat chapter:8 ^D
 */
 
 
@@ -205,8 +205,7 @@ bool command_checking		(char* com[], int words_num){
 
 			if(com[i][strlen(com[i])-1] == ':') 
 				return false;
-
-
+			
 			strcpy(book_c,com[i]);
 
 			ptr = strtok(book_c,":");
@@ -214,12 +213,8 @@ bool command_checking		(char* com[], int words_num){
 
 			if(strcmp(ptr,"book") != 0 && strcmp(ptr,"chapter") != 0) 
 				return false;
-				
-			
 
 			if( strstr(com[i],"book:") != NULL){
-
-				
 
 				strcpy(book_c,com[i]);
 
@@ -228,10 +223,9 @@ bool command_checking		(char* com[], int words_num){
 
 				result = atoi(ptr);
 
-				if(result != 0) 	
+				if(result != 0)
 					return false;
-				
-				
+					
 			}
 
 			else if( strstr(com[i],"chapter:") != NULL){
