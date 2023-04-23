@@ -59,6 +59,10 @@ char * read_a_line  			();
 
 bool run_tico					();
 
+void print_banner               ();
+
+void print_bye					();
+
 void memory_initialize			(memory mem1[]);
 
 void print_memory				(memory mem1[]);
@@ -94,25 +98,33 @@ bool run_tico()
 
 	int result = 0,idx = 0;
 
-	printf("+-------------------------------------------------+\n");
-	printf("|    _____                    ____     U  ___ u   |\n");
-	printf("|   |_ \" _|       ___       U \"___|     \\/\"_ \\/   |\n");
-	printf("|     | |        |_\"_|     \\| | u       | | | |   |\n");
-	printf("|    /| |\\        | |       | |/__  .-,_| |_| |   |\n");
-	printf("|   u |_|U      U/| |\\u      \\____|  \\_)-\\___/    |\n");
-	printf("|   _// \\\\_  .-,_|___|_,-.  _// \\\\        \\\\      |\n");
-	printf("|   (__) (__)  \\_)-' '-(_/  (__)(__)      (__)    |\n");
-	printf("+-------------------------------------------------+\n\n");
+	char pm_b;
 
-	printf(">> hi this is tico\n");
+	print_banner();
 
-	printf(">> [info] memory initializing...\n");
+	printf(">> HI, This is your TICO: Tiny Computer\n");
+
+	printf("\n>> Do you prefer to print the memory ? (Y , N) : ");
+
+	scanf("%c",&pm_b);
+
+	printf("\n>> [info] Memory Initializing...\n");
 
 	memory_initialize(mem1);
 
-	if (load_file_to_memory(mem1))
-		printf(">> save data to memory succesfully !\n");
+	printf("\n>> [info] SUCCESS !\n\n");
 
+
+	printf(">> [info] Start Lodaing File \n");
+
+	if (load_file_to_memory(mem1))
+		printf("\n>> [info] SUCCESS !\n\n");
+
+	printf("\n>> Run the commands in memory !\n\n");
+
+	printf("\n>> Proccess of running\n");
+
+	printf("-------------------------------------------\n");
 
 	while(true)
 	{
@@ -121,12 +133,16 @@ bool run_tico()
 		if(result == -1)
 			break;
 	}
+	printf("-------------------------------------------\n");
 
-	printf(">> check the memory state\n\n");
-	print_memory(mem1);
+	if(pm_b == 'Y')
+	{
+		printf("\n>> check the memory state\n\n");
+		print_memory(mem1);
+	}
 	
 	printf("\n\n>> terminate the tico\n");
-	printf(">> thank you\n");
+	print_bye();
 
 	return true;
 
@@ -139,25 +155,23 @@ bool load_file_to_memory	(memory m1[])
 
 	char form[] = ".txt";
 
-	printf(">> type the name of file exclude extends ex : fil1 ) :  ");
+	printf("\n>> Type the name of file exclude extends (EX : fil1.txt -> file ) :  ");
 
 	scanf("%s",fname);
 
 	strcat(fname,form);
 
-	printf(">> [info] start lodaing file \n");
-
-	printf(">> [info] loading... \n");
+	printf("\n>> [info] Loading... \n");
 
 	fp_asb = fopen(fname, "r") ;
 
-	printf(">> [info] file loaded succesfully \n");
+	printf("\n>> [info] SUCCESS ! \n");
 
 	char * s = 0x0 ;
 
-	printf(">> [info] save data to memory \n");
+	printf("\n>> [info] Save data to memory \n");
 
-	printf(">> [info] loading . . .\n");
+	printf("\n>> [info] Loading . . .\n");
 
 	while ((s = read_a_line())) {
 
@@ -216,8 +230,7 @@ void print_memory			(memory mem1[])
 	printf("+--------------------------------------------+\n");
 }
 
-
-int run_command			(memory mem1[], int* n, int end)
+int run_command				(memory mem1[], int* n, int end)
 {
 	int result = 0;
 	int now = *n;
@@ -225,80 +238,80 @@ int run_command			(memory mem1[], int* n, int end)
 	switch (mem1[now].type)
 	{
 		case READ:
-			printf(">> [info] READ start \n");
-			printf(">> type the input data : ");
+			// printf(">> [info] READ start \n");
+			printf("INPUT  : ");
 
 			scanf("%d",&(mem1[mem1[now].value[0]].value[0]));
 			
-			printf(">> save succesfully !\n");
+			// printf(">> save succesfully !\n");
 
 			break;
 		case WRITE:
-			printf(">> [info] WRITE start \n");
-			printf("-----------------------------------------------------\n");
-			printf(">> output : %d\n", mem1[mem1[now].value[0]].value[0]);
-			printf("-----------------------------------------------------\n");
+			// printf(">> [info] WRITE start \n");
+			// printf("-----------------------------------------------------\n");
+			printf("OUTPUT : %d\n", mem1[mem1[now].value[0]].value[0]);
+			// printf("-----------------------------------------------------\n");
 			break;
 		case ASSIGN:
-			printf(">> [info] ASSIGN start \n");
+			// printf(">> [info] ASSIGN start \n");
 			mem1[mem1[now].value[0]].value[0] = mem1[now].value[1];
-			printf(">> save succesfully !\n");
+			// printf(">> save succesfully !\n");
 			break;
 		case MOVE:
-			printf(">> [info] MOVE start \n");
+			// printf(">> [info] MOVE start \n");
 			mem1[mem1[now].value[0]].value[0] = mem1[mem1[now].value[1]].value[0] ;
-			printf(">> save succesfully !\n");
+			// printf(">> save succesfully !\n");
 			break;
 		case LOAD:
-			printf(">> [info] LOAD start \n");
+			// printf(">> [info] LOAD start \n");
 			// md ms
 			// ms에 있는 값이 주소값 -> 그 주소값으로 넘어가서 사지고 있는 값을 md로 집어 넣는다.
 			mem1[mem1[now].value[0]].value[0] = mem1[mem1[mem1[now].value[1]].value[0]].value[0];
  			break;
 		case STORE:
-			printf(">> [info] STORE start \n");
+			// printf(">> [info] STORE start \n");
 			//md ms
 			// ms에 있는 값이 주소값 -> md의 값을 그 주소값에 다가 집어 넣는다.
 			mem1[mem1[mem1[now].value[1]].value[0]].value[0] = mem1[mem1[now].value[0]].value[0];
 			break;
 		case ADD	:
-			printf(">> [info] ADD start \n");
+			// printf(">> [info] ADD start \n");
 			mem1[mem1[now].value[0]].value[0] = mem1[mem1[now].value[1]].value[0] +  mem1[mem1[now].value[2]].value[0];
 			break;
 		case MINUS:
-			printf(">> [info] MINUS start \n");
+			// printf(">> [info] MINUS start \n");
 			mem1[mem1[now].value[0]].value[0] = mem1[mem1[now].value[1]].value[0] -  mem1[mem1[now].value[2]].value[0];
 			break;
 		case MULT:
-			printf(">> [info] MULT start \n");
+			// printf(">> [info] MULT start \n");
 			mem1[mem1[now].value[0]].value[0] = mem1[mem1[now].value[1]].value[0] *  mem1[mem1[now].value[2]].value[0];
 			break;
 		case MOD:
-			printf(">> [info] MOD start \n");
+			// printf(">> [info] MOD start \n");
 			mem1[mem1[now].value[0]].value[0] = mem1[mem1[now].value[1]].value[0] %  mem1[mem1[now].value[2]].value[0];
 			break;
 		case EQ	:
-			printf(">> [info] EQ start \n");
+			// printf(">> [info] EQ start \n");
 			if( mem1[mem1[now].value[1]].value[0] == mem1[mem1[now].value[2]].value[0])
 				mem1[mem1[now].value[0]].value[0] = 1;
 			else
 				mem1[mem1[now].value[0]].value[0] = 0;
 			break;
 		case LESS:
-			printf(">> [info] LESS start \n");
+			// printf(">> [info] LESS start \n");
 			if( mem1[mem1[now].value[1]].value[0] < mem1[mem1[now].value[2]].value[0])
 				mem1[mem1[now].value[0]].value[0] = 1;
 			else
 				mem1[mem1[now].value[0]].value[0] = 0;
 			break;
 		case JUMP:
-			printf(">> [info] JUMP start \n");
+			// printf(">> [info] JUMP start \n");
 			*n =  mem1[now].value[0]; 
 			return 0;
 
 			break;
 		case JUMPIF:
-			printf(">> [info] JUMPIF start \n");
+			// printf(">> [info] JUMPIF start \n");
 			if(mem1[mem1[now].value[1]].value[0] != 0)
 			{
 				*n =  mem1[now].value[0]; 
@@ -307,7 +320,7 @@ int run_command			(memory mem1[], int* n, int end)
 				
 			break;
 		case TERM:
-			printf(">> [info] TERM start \n");
+			// printf(">> [info] TERM start \n");
 			return -1;
 			break;
 	
@@ -320,6 +333,32 @@ int run_command			(memory mem1[], int* n, int end)
 	*n = (*n)+1;
 
 	return 0;
+}
+
+void print_banner           ()
+{
+	printf("+-------------------------------------------------+\n");
+	printf("|    _____                    ____     U  ___ u   |\n");
+	printf("|   |_ \" _|       ___       U \"___|     \\/\"_ \\/   |\n");
+	printf("|     | |        |_\"_|     \\| | u       | | | |   |\n");
+	printf("|    /| |\\        | |       | |/__  .-,_| |_| |   |\n");
+	printf("|   u |_|U      U/| |\\u      \\____|  \\_)-\\___/    |\n");
+	printf("|   _// \\\\_  .-,_|___|_,-.  _// \\\\        \\\\      |\n");
+	printf("|   (__) (__)  \\_)-' '-(_/  (__)(__)      (__)    |\n");
+	printf("+-------------------------------------------------+\n\n");
+}
+
+void print_bye				()
+{
+
+printf("    ____     __   __ U _____ u \n");
+printf(" U | __\")u   \\ \\ / / \\| ___\"|/ \n");
+printf("  \\|  _ \\/    \\ V /   |  _|\"   \n");
+printf("   | |_) |   U_|\"|_u  | \\|___   \n");
+printf("   |____/      |_|    |_____|  \n");
+printf("  _|| \\\\_  .-,//|(_   <<   >>  \n");
+printf(" (__) (__)  \\_) (__) (__) (__) \n\n");
+
 }
 
 void save_command_in_memory	(char com[], memory * mem1)
@@ -393,7 +432,7 @@ void save_command_in_memory	(char com[], memory * mem1)
 
 }
 
-int find_end_of_inst			(memory mem1[])
+int find_end_of_inst		(memory mem1[])
 {	
 	int idx = 0;
 
