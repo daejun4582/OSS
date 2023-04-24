@@ -73,7 +73,7 @@ int find_end_of_memory			(memory mem1[]);
 
 int run_command				(memory mem1[], int * n, int end);
 
-void save_command_in_memory		(char com[], memory *mem1);
+bool save_command_in_memory		(char com[], memory *mem1);
 
 int find_end_of_inst			(memory mem1[]);
 
@@ -119,6 +119,13 @@ bool run_tico()
 
 	if (load_file_to_memory(mem1))
 		printf("\n>> [info] SUCCESS !\n\n");
+	else 
+	{
+		printf("\n>> [ERROR] the range of value is overflowed. \n\n");
+		printf("\n\n>> terminate the tico\n");
+		print_bye();
+		return 0;
+	}
 
 	printf("\n>> Run the commands in memory !\n\n");
 
@@ -175,7 +182,8 @@ bool load_file_to_memory	(memory m1[])
 
 	while ((s = read_a_line())) {
 
-		save_command_in_memory(s,m1);
+		if(!save_command_in_memory(s,m1))
+			return false;
 
 		free(s) ;
 	}
@@ -210,7 +218,7 @@ void print_memory			(memory mem1[])
 	printf("+--------------------------------------------+\n");
 	printf("|  NUM  | INSTRUC | VALUE1 | VALUE2 | VLAUE3 |\n");
 	printf("+--------------------------------------------+\n");
-	for(int i = 0; i < 30; i++)
+	for(int i = 0; i < 256; i++)
 	{
 		dinum = num_of_digit(i)	;
 		if(dinum == 1)
@@ -232,17 +240,31 @@ void print_memory			(memory mem1[])
 
 int run_command				(memory mem1[], int* n, int end)
 {
-	int result = 0;
+	int result = 0,input;
 	int now = *n;
 
 	switch (mem1[now].type)
 	{
 		case READ:
 			// printf(">> [info] READ start \n");
+			
 			printf("INPUT  : ");
 
-			scanf("%d",&(mem1[mem1[now].value[0]].value[0]));
-			
+			scanf("%d",&(input));
+
+			while(true)
+			{
+				if( -128 <= input && input <= 127)
+					break;
+
+				printf("\n[ERROR] Input value is overflowed. Try it agin.(range : -128 <= x <=127) \n\n");
+
+				printf("INPUT  : ");
+
+				scanf("%d",&(input));
+			}
+
+			mem1[mem1[now].value[0]].value[0] = input;
 			// printf(">> save succesfully !\n");
 
 			break;
@@ -361,7 +383,7 @@ printf(" (__) (__)  \\_) (__) (__) (__) \n\n");
 
 }
 
-void save_command_in_memory	(char com[], memory * mem1)
+bool save_command_in_memory	(char com[], memory * mem1)
 {
 
 	char * address, * val_s, result[10];
@@ -405,6 +427,11 @@ void save_command_in_memory	(char com[], memory * mem1)
 			if(address == NULL)
 				break;
 			
+			val = atoi(address);
+
+			if(val < 0 || val > 255)
+				return false;
+
 			m1.value[idx] = atoi(address);
 
 			idx ++;
@@ -422,7 +449,13 @@ void save_command_in_memory	(char com[], memory * mem1)
 		if(address != NULL)
 		{
 			eliminate(address,'"',result);
-			m1.value[0] = atoi(result);
+			
+			val = atoi(result);
+
+			if(-128 > val || val > 127)
+				return false; 
+
+			m1.value[0] = val;
 		}
 
 
@@ -430,6 +463,8 @@ void save_command_in_memory	(char com[], memory * mem1)
 
 	mem1[add_address] = m1;
 
+
+	return true;
 }
 
 int find_end_of_inst		(memory mem1[])
