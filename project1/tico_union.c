@@ -50,6 +50,8 @@ typedef struct {
   unsigned char operand [3];    
 } Instructor;
 
+
+
 typedef union { 
     signed char value; 
     Instructor inst; 
@@ -434,7 +436,7 @@ void print_memory			(Memory mem1[],int eoins)
 	printf("+-----------------------------------------------------------------------+\n");
 
 
-	for(int i = 0; i < eoins; i++)
+	for(int i = 0; i < eoins-1; i++)
 	{
 		dinum = num_of_digit(idx);
 		if(dinum == 1)

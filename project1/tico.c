@@ -24,7 +24,7 @@ typedef enum
 	JUMPIF	,	
 	TERM	,	
 	VALUE
-} INST_TYPE;
+} TYPE;
 
 char commands[16][10] = 
 {
@@ -47,7 +47,7 @@ char commands[16][10] =
 };
 
 typedef struct{
-	INST_TYPE 	type;
+	TYPE 	type;
 	int 		value[3];
 } memory;
 
@@ -104,7 +104,7 @@ bool run_tico()
 
 	printf(">> HI, This is your TICO: Tiny Computer\n");
 
-	printf("\n>> Do you prefer to print the memory ? (Y , N) : ");
+	printf("\n>> Do you prefer to print the Memory  State ? [ Y , N ] : ");
 
 	scanf("%c",&pm_b);
 
@@ -127,7 +127,7 @@ bool run_tico()
 		return 0;
 	}
 
-	printf("\n>> Run the commands in memory !\n\n");
+	printf("\n>> Run the commands in memory \n\n");
 
 	printf("\n>> Proccess of running\n");
 
@@ -240,7 +240,7 @@ void print_memory			(memory mem1[])
 
 int run_command				(memory mem1[], int* n, int end)
 {
-	int result = 0,input;
+	int result = 0;
 	int now = *n;
 
 	switch (mem1[now].type)
@@ -250,21 +250,7 @@ int run_command				(memory mem1[], int* n, int end)
 			
 			printf("INPUT  : ");
 
-			scanf("%d",&(input));
-
-			while(true)
-			{
-				if( -128 <= input && input <= 127)
-					break;
-
-				printf("\n[ERROR] Input value is overflowed. Try it agin.(range : -128 <= x <=127) \n\n");
-
-				printf("INPUT  : ");
-
-				scanf("%d",&(input));
-			}
-
-			mem1[mem1[now].value[0]].value[0] = input;
+			scanf("%d",&(mem1[mem1[now].value[0]].value[0]));
 			// printf(">> save succesfully !\n");
 
 			break;
@@ -373,13 +359,15 @@ void print_banner           ()
 void print_bye				()
 {
 
-printf("    ____     __   __ U _____ u \n");
-printf(" U | __\")u   \\ \\ / / \\| ___\"|/ \n");
-printf("  \\|  _ \\/    \\ V /   |  _|\"   \n");
-printf("   | |_) |   U_|\"|_u  | \\|___   \n");
-printf("   |____/      |_|    |_____|  \n");
-printf("  _|| \\\\_  .-,//|(_   <<   >>  \n");
-printf(" (__) (__)  \\_) (__) (__) (__) \n\n");
+printf("     +-----------------------------------+\n");
+printf("     |      ____     __   __ U _____ u   |\n");
+printf("     |   U | __\")u   \\ \\ / / \\| ___\"|/   |\n");
+printf("     |    \\|  _ \\/    \\ V /   |  _|\"     |\n");
+printf("     |     | |_) |   U_|\"|_u  | \\|___    |\n");
+printf("     |     |____/      |_|    |_____|    |\n");
+printf("     |    _|| \\\\_  .-,//|(_   <<   >>    |\n");
+printf("     |   (__) (__)  \\_) (__) (__) (__)   |\n");
+printf("     +-----------------------------------+\n\n");
 
 }
 
