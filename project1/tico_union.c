@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 #include <stdbool.h>
 
 #define MEMORY_SIZE 256
@@ -25,7 +26,7 @@ typedef enum
 	TERM	
 } TYPE;
 
-char type_s[16][10] = 
+char type_s[15][10] = 
 {
 	"READ"		,    
     "WRITE"		,    
@@ -42,8 +43,9 @@ char type_s[16][10] =
 	"JUMP"		,
 	"JUMPIF"	,
 	"TERM"		,
-	"VALUE"		,
 };
+
+int instruc_operand_num[15] = {1,1,2,2,2,2,3,3,3,3,3,3,1,2,0};
 
 typedef struct { 
   TYPE operator;
@@ -67,13 +69,17 @@ bool run_tico					();
 
 void memory_initialize			(Memory mem1[]);
 
-int load_file_to_memory		(Memory mem1[], int * eoins);
+int load_file_to_memory			(Memory mem1[], int * eoins); // 0 : ok 1: operand overflow 2: value overflow 3:  file not found 4: instruction not supported
 
 int save_command_to_memory		(char com[], Memory mem1[], int * eoins);
 
-int run_command				    (Memory mem1[], int * n);
+void run_all_commands			(Memory mem1[]);
 
-void print_memory				(Memory mem1[], int eoins);
+int  run_command				(Memory mem1[], int * n);
+
+void print_memory				(Memory mem1[], int eoins, char onoff);
+
+void print_error				(int stage, int errornum);
 
 
 bool is_instruction				(char com[]);
@@ -81,7 +87,6 @@ bool is_instruction				(char com[]);
 void eliminate_char				(char *str, char ch, char * result);
 
 int  num_of_digit				(int num);
-
 
 void print_banner           	();
 
@@ -95,12 +100,11 @@ int main(void)
 }
 
 
-
 bool run_tico					()
 {
     Memory mem1[MEMORY_SIZE];
 
-    int result = 0,idx = 0, eoins = 0, check = 0;
+    int result = 0,idx = 0, eoins = 0, check = 0,stage = 0;
 
 	char pm_b;
 
@@ -112,52 +116,28 @@ bool run_tico					()
 
 	scanf("%c",&pm_b);
 
-	printf("\n>> [info] Memory Initializing...\n");
+	stage++;  //1
+
+	pm_b = tolower(pm_b);
+
+	if(pm_b != 'y' && pm_b != 'n')
+		print_error(stage,0);
 
 	memory_initialize(mem1);
 
-	printf("\n>> [info] SUCCESS !\n\n");
-
-	printf(">> [info] Start Lodaing File \n");
-
 	check = load_file_to_memory(mem1,&eoins);
 
+	stage++; //2
+
 	if (check == 0)
-		printf("\n>> [info] SUCCESS !\n\n");
+		printf("\n>> [INFO] SUCCESS !\n\n");
 	else 
-	{	
-		if(check == 1)
-			printf("\n>> [ERROR] the range of operand is overflowed. \n\n");
-		else if(check == 2)
-			printf("\n>> [ERROR] the range of value is overflowed. \n\n");
-		printf("\n\n>> terminate the tico\n");
-		print_bye();
-		return 0;
-	}
-    
-
-    printf("\n>> Run the commands in memory \n\n");
-
-	printf("\n>> Proccess of running\n");
-
-	printf("-------------------------------------------\n");
-
-	while(true)
-	{
-		result = run_command(mem1,&idx);
-		
-		if(result == -1)
-			break;
-	}
-	printf("-------------------------------------------\n");
+		print_error(stage,check);
 	
-	if(pm_b == 'Y')
-	{
-		printf("\n>> check the memory state\n\n");
-		print_memory(mem1,eoins);
-	}
+	run_all_commands(mem1);
 	
-	printf("\n\n>>[info] terminate the TICO\n");
+	print_memory(mem1,eoins, pm_b);
+	
 	print_bye();
 
     return 0;
@@ -165,13 +145,16 @@ bool run_tico					()
 
 void memory_initialize			(Memory mem1[])
 {
+	printf("\n>> [INFO] Memory Initializing...\n");
+
     for(int i  = 0; i < 256; i++)
     {
         mem1[i].value = 0;
     }
+	printf("\n>> [INFO] SUCCESS !\n\n");
 }
 
-int load_file_to_memory		(Memory mem1[], int * eoins)
+int load_file_to_memory			(Memory mem1[], int * eoins)
 {
     char fname[100];
 
@@ -179,23 +162,30 @@ int load_file_to_memory		(Memory mem1[], int * eoins)
 
 	int result;
 
+	printf(">> [INFO] Start Lodaing File \n");
+
 	printf("\n>> Type the name of file exclude extends (EX : fil1.txt -> file ) :  ");
 
 	scanf("%s",fname);
 
 	strcat(fname,form);
 
-	printf("\n>> [info] Loading... \n");
+	printf("\n\n>> [INFO] Loading... \n");
 
 	fp_asb = fopen(fname, "r") ;
 
-	printf("\n>> [info] SUCCESS ! \n");
+	if(fp_asb == NULL)
+		return 3;
+
+	
+
+	printf("\n>> [INFO] SUCCESS ! \n");
 
 	char * s = 0x0 ;
 
-	printf("\n>> [info] Save data to memory \n");
+	printf("\n>> [INFO] Save data to memory \n");
 
-	printf("\n>> [info] Loading . . .\n");
+	printf("\n>> [INFO] Loading . . .\n");
 
 	while ((s = read_a_line())) {
 		
@@ -221,7 +211,7 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 
 	unsigned char add_address,res;
 
-	bool check_com = is_instruction(com);
+	bool is_ins = is_instruction(com),state;
 
 	Memory m1;
 
@@ -237,19 +227,26 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 	
 	address = address+(digit+1);
 
-	if(check_com){
+	if(is_ins){
         *eoins = *eoins +1;
 
 		address = strtok(address, " ");
+
+		state = false;
 
 		for(int i = 0; i < 16; i++)
 		{
 			if(strcmp(address,type_s[i])==0)
 			{
 				m1.inst.operator = i;
+				state = true;
+				break;
 			}
 				
 		}
+
+		if(state == false)
+			return 4;
 
 		while(true){
 			address = strtok(NULL, " ");   
@@ -296,7 +293,27 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 	return 0;
 }
 
-int run_command				(Memory mem1[], int* n)
+void run_all_commands			(Memory mem1[])
+{
+	int result, idx = 0;
+
+	printf("\n>> Run the commands in memory \n\n");
+
+	printf("\n>> Proccess of running\n");
+
+	printf("-------------------------------------------\n");
+
+	while(true)
+	{
+		result = run_command(mem1,&idx);
+		
+		if(result == -1)
+			break;
+	}
+	printf("-------------------------------------------\n");
+}
+
+int run_command					(Memory mem1[], int* n)
 {
 	int result = 0,input;
 	int now = *n;
@@ -311,7 +328,7 @@ int run_command				(Memory mem1[], int* n)
 	switch (mem1[now].inst.operator)
 	{
 		case READ:
-			// printf(">> [info] READ start \n");
+			// printf(">> [INFO] READ start \n");
 			
 			printf("INPUT  : ");
 
@@ -335,23 +352,23 @@ int run_command				(Memory mem1[], int* n)
 
 			break;
 		case WRITE:
-			// printf(">> [info] WRITE start \n");
+			// printf(">> [INFO] WRITE start \n");
 			// printf("-----------------------------------------------------\n");
             printf("OUTPUT : %d\n", mem1[opern[0]].value);
 			// printf("-----------------------------------------------------\n");
 			break;
 		case ASSIGN:
-			// printf(">> [info] ASSIGN start \n");
+			// printf(">> [INFO] ASSIGN start \n");
             mem1[opern[0]].value = opern[1];
 			// printf(">> save succesfully !\n");
 			break;
 		case MOVE:
-			// printf(">> [info] MOVE start \n");
+			// printf(">> [INFO] MOVE start \n");
             mem1[opern[0]].value = mem1[opern[1]].value ;
 			// printf(">> save succesfully !\n");
 			break;
 		case LOAD:
-			// printf(">> [info] LOAD start \n");
+			// printf(">> [INFO] LOAD start \n");
 			// md ms
 			// ms에 있는 값이 주소값 -> 그 주소값으로 넘어가서 사지고 있는 값을 md로 집어 넣는다.
             mem1[opern[0]].value = mem1[mem1[opern[1]].value].value;
@@ -424,10 +441,15 @@ int run_command				(Memory mem1[], int* n)
 	return 0;
 }
 
-void print_memory			(Memory mem1[],int eoins)
+void print_memory				(Memory mem1[],int eoins, char onoff)
 {
+	if(onoff != 'y')
+		return;
+
 	int idx = 0 ,dinum;
     char types[][30] = {"INSTRUCTION","VALUE"};
+
+	printf("\n>> check the memory state\n\n");
 
 	printf("+-----------------------------------------------------------------------+\n");
 	printf("|                             MEMORY  INFO                              |\n");
@@ -436,7 +458,7 @@ void print_memory			(Memory mem1[],int eoins)
 	printf("+-----------------------------------------------------------------------+\n");
 
 
-	for(int i = 0; i < eoins-1; i++)
+	for(int i = 0; i < eoins; i++)
 	{
 		dinum = num_of_digit(idx);
 		if(dinum == 1)
@@ -447,7 +469,7 @@ void print_memory			(Memory mem1[],int eoins)
 			printf("|  %3d  |  %-12s  |  %-6s  |",idx,types[0],type_s[mem1[i].inst.operator]);
 		for(int j = 0; j < 3; j++)
 		{
-			if(mem1[i].inst.operand[j] != 0)
+			if(j+1 <= instruc_operand_num[mem1[i].inst.operator])
 				printf("   %4d    |",mem1[i].inst.operand[j]);
 			else
 				printf("           |");
@@ -477,6 +499,36 @@ void print_memory			(Memory mem1[],int eoins)
         idx++;
     }
 	printf("+-----------------------------------------------------------------------+\n");
+}
+
+void print_error				(int stage, int errornum)
+{
+	switch (stage)
+	{
+	case 1:
+		fprintf(stderr, "\n>> [ERROR] Input of unsupported format.\n");	
+		break;
+	case 2:
+		if(errornum == 1)
+			fprintf(stderr,"\n>> [ERROR] the range of operand is overflowed. \n\n");
+		else if(errornum == 2)
+			fprintf(stderr,"\n>> [ERROR] the range of value is overflowed. \n\n");
+		else if(errornum == 3)
+			fprintf(stderr, "\n>> [ERROR] The file does not exist. %s.\n",strerror(errno));	
+		else if(errornum == 4)
+			fprintf(stderr,"\n>> [ERROR] Instruction not supported is included in file. \n\n");
+		break;
+	case 3:
+		
+		break;
+	
+	default:
+		break;
+	}
+
+	print_bye();
+
+	exit(1);
 }
 
 bool is_instruction				(char com[])
@@ -510,7 +562,7 @@ void eliminate_char				(char *str, char ch, char * result)
 
 }
 
-int  num_of_digit			(int num)
+int  num_of_digit				(int num)
 {	
 	if(num == 0) return 1;
 
@@ -524,7 +576,7 @@ int  num_of_digit			(int num)
 	return cnt;
 }
 
-void print_banner           ()
+void print_banner          		()
 {
 	printf("+-------------------------------------------------+\n");
 	printf("|    _____                    ____     U  ___ u   |\n");
@@ -537,8 +589,10 @@ void print_banner           ()
 	printf("+-------------------------------------------------+\n\n");
 }
 
-void print_bye				()
+void print_bye					()
 {
+
+printf("\n\n>>[INFO] terminate the TICO\n\n");
 
 printf("     +-----------------------------------+\n");
 printf("     |      ____     __   __ U _____ u   |\n");
@@ -552,7 +606,7 @@ printf("     +-----------------------------------+\n\n");
 
 }
 
-char * read_a_line 			()
+char * read_a_line 				()
 {
 	static char buf[BUFSIZ] ;
 	static int buf_n = 0 ;
