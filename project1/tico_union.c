@@ -134,7 +134,7 @@ bool run_tico					()
 	else 
 		print_error(stage,check);
 	
-	run_all_commands(mem1);
+	// run_all_commands(mem1);
 	
 	print_memory(mem1,eoins, pm_b);
 	
@@ -207,7 +207,7 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 {
     char * address, * val_s, result[10];
 
-	int digit,val,idx = 0;
+	int digit,val,idx = 0,cnt = 0;
 
 	unsigned char add_address,res;
 
@@ -247,11 +247,30 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 
 		if(state == false)
 			return 4;
+		
+		if(m1.inst.operator != ASSIGN)
+		{
+			while(true)
+			{
+				address = strtok(NULL, " ");   
+				if(address == NULL)
+					break;
+				
+				val = atoi(address);
 
-		while(true){
+				if(0 > val || val > 255)
+					return 1;
+
+				m1.inst.operand[idx] = val;
+
+				idx ++;
+				
+			}  
+		}
+		else
+		{
+
 			address = strtok(NULL, " ");   
-			if(address == NULL)
-				break;
 			
 			val = atoi(address);
 
@@ -261,8 +280,22 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 			m1.inst.operand[idx] = val;
 
 			idx ++;
+
+			digit = num_of_digit(val);
 			
-		}  
+			eliminate_char(address+digit+1,'"',result);
+
+			val = atoi(result);
+
+			if(-128 > val || val > 127)
+				return 2;
+
+			m1.inst.operand[idx] = val;
+
+			idx ++;
+
+		}
+		
 
 	}
 	else{
@@ -446,8 +479,8 @@ void print_memory				(Memory mem1[],int eoins, char onoff)
 	if(onoff != 'y')
 		return;
 
-	int idx = 0 ,dinum;
-    char types[][30] = {"INSTRUCTION","VALUE"};
+	int idx = 0 ,dinum,size = 0;
+    char types[][30] = {"INSTRUCTION","VALUE"},p[30],pk[30];
 
 	printf("\n>> check the memory state\n\n");
 
@@ -469,10 +502,33 @@ void print_memory				(Memory mem1[],int eoins, char onoff)
 			printf("|  %3d  |  %-12s  |  %-6s  |",idx,types[0],type_s[mem1[i].inst.operator]);
 		for(int j = 0; j < 3; j++)
 		{
-			if(j+1 <= instruc_operand_num[mem1[i].inst.operator])
-				printf("   %4d    |",mem1[i].inst.operand[j]);
+			if(mem1[i].inst.operator != ASSIGN)
+			{
+				if(j+1 <= instruc_operand_num[mem1[i].inst.operator])
+					printf("   %3d     |",mem1[i].inst.operand[j]);
+				else
+					printf("           |");
+			}
 			else
-				printf("           |");
+			{
+				if(j+1 <= instruc_operand_num[mem1[i].inst.operator] && j != 1)
+					printf("   %3d     |",mem1[i].inst.operand[j]);
+				else if(j == 1)
+				{
+					pk[0] = '"';
+					itoa(mem1[i].inst.operand[j], p, 30 );
+					size = num_of_digit(mem1[i].inst.operand[j]) + 1;
+					strcat(pk,p);
+					pk[size] = '"';
+					printf("%5s  |",pk);                                                              
+
+				}
+
+					
+				else
+					printf("           |");
+			}
+			
 		}
 		
 		printf("\n");
@@ -488,7 +544,7 @@ void print_memory				(Memory mem1[],int eoins, char onoff)
         dinum = num_of_digit(idx);
 
         if(dinum == 1)
-			printf("|  %3d    |     %-7s   |",idx,types[1]);
+			printf("|  %3d   |     %-7s   |",idx,types[1]);
 		else if(dinum == 2)
 			printf("|   %2d   |     %-7s   |",idx,types[1]);
 		else
