@@ -22,11 +22,12 @@ typedef enum
 	EQ		,	
 	LESS	,	
 	JUMP	,	
-	JUMPIF	,	
+	JUMPIF	,
+	CNT		,	
 	TERM	
 } TYPE;
 
-char type_s[15][10] = 
+char type_s[16][10] = 
 {
 	"READ"		,    
     "WRITE"		,    
@@ -42,7 +43,8 @@ char type_s[15][10] =
 	"LESS"		,
 	"JUMP"		,
 	"JUMPIF"	,
-	"TERM"		,
+	"CNT"		,
+	"TERM"		
 };
 
 int instruc_operand_num[15] = {1,1,2,2,2,2,3,3,3,3,3,3,1,2,0};
@@ -235,7 +237,7 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 
 		state = false;
 
-		for(int i = 0; i < 16; i++)
+		for(int i = 0; i <= 16; i++)
 		{
 			if(strcmp(address,type_s[i])==0)
 			{
@@ -456,6 +458,11 @@ int run_command					(Memory mem1[], int* n)
 			{
 				*n =  opern[0]; 
 				return 0;
+			}
+		case CNT:
+			if(mem1[opern[1]].value == mem1[opern[2]].value)
+			{
+				mem1[opern[0]].value +=1;
 			}
 				
 			break;
