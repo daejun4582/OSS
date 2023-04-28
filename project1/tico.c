@@ -78,7 +78,7 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins);
 
 void run_all_commands			(Memory mem1[]);
 
-int  run_command				(Memory mem1[], int * n);
+int  run_command				(Memory mem1[], int * n,int rs[],int * rs_idx);
 
 void print_memory				(Memory mem1[], int eoins, char onoff);
 
@@ -331,7 +331,7 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 
 void run_all_commands			(Memory mem1[])
 {
-	int result, idx = 0;
+	int result, idx = 0,rs[100],rs_idx = 0;
 
 	printf("\n>> Run the commands in memory \n\n");
 
@@ -341,15 +341,22 @@ void run_all_commands			(Memory mem1[])
 
 	while(true)
 	{
-		result = run_command(mem1,&idx);
+		result = run_command(mem1,&idx,rs,&rs_idx);
 		
 		if(result == -1)
 			break;
 	}
 	printf("-------------------------------------------\n");
+
+	printf("OUTPUT : ");
+	for(int i = 0; i < rs_idx; i++)
+	{
+		printf("%d ",rs[i]);
+	}
+	printf("\n");
 }
 
-int run_command					(Memory mem1[], int* n)
+int run_command					(Memory mem1[], int* n,int rs[],int * rs_idx)
 {
 	int result = 0,input;
 	int now = *n;
@@ -392,6 +399,9 @@ int run_command					(Memory mem1[], int* n)
 			// printf("-----------------------------------------------------\n");
             printf("OUTPUT : %d\n", mem1[opern[0]].value);
 			// printf("-----------------------------------------------------\n");
+
+			rs[*rs_idx] = mem1[opern[0]].value;
+			(*rs_idx)++;
 			break;
 		case ASSIGN:
 			// printf(">> [INFO] ASSIGN start \n");
