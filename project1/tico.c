@@ -47,7 +47,7 @@ char type_s[16][10] =
 	"TERM"		
 };
 
-int instruc_operand_num[15] = {1,1,2,2,2,2,3,3,3,3,3,3,1,2,0};
+int instruc_operand_num[16] = {1,1,2,2,2,2,3,3,3,3,3,3,1,2,3,0};
 
 typedef struct { 
   TYPE operator;
@@ -76,7 +76,7 @@ int load_file_to_memory			(Memory mem1[], int * eoins); // 0 : ok 1: operand ove
 
 int save_command_to_memory		(char com[], Memory mem1[], int * eoins);
 
-void run_all_commands			(Memory mem1[]);
+void run_all_commands			(Memory mem1[],int eoins);
 
 int  run_command				(Memory mem1[], int * n,int rs[],int * rs_idx);
 
@@ -137,7 +137,7 @@ bool run_tico					()
 	else 
 		print_error(stage,check);
 	
-	run_all_commands(mem1);
+	run_all_commands(mem1,eoins);
 	
 	print_memory(mem1,eoins, pm_b);
 	
@@ -329,7 +329,7 @@ int save_command_to_memory		(char com[], Memory mem1[], int * eoins)
 	return 0;
 }
 
-void run_all_commands			(Memory mem1[])
+void run_all_commands			(Memory mem1[],int eoins)
 {
 	int result, idx = 0,rs[100],rs_idx = 0;
 
@@ -341,6 +341,8 @@ void run_all_commands			(Memory mem1[])
 
 	while(true)
 	{
+		// print_memory(mem1,eoins,'y');
+
 		result = run_command(mem1,&idx,rs,&rs_idx);
 		
 		if(result == -1)
@@ -371,7 +373,7 @@ int run_command					(Memory mem1[], int* n,int rs[],int * rs_idx)
 	switch (mem1[now].inst.operator)
 	{
 		case READ:
-			// printf(">> [INFO] READ start \n");
+			 printf(">> [INFO] READ start \n");
 			
 			printf("INPUT  : ");
 
@@ -395,7 +397,7 @@ int run_command					(Memory mem1[], int* n,int rs[],int * rs_idx)
 
 			break;
 		case WRITE:
-			// printf(">> [INFO] WRITE start \n");
+			 printf(">> [INFO] WRITE start \n");
 			// printf("-----------------------------------------------------\n");
             printf("OUTPUT : %d\n", mem1[opern[0]].value);
 			// printf("-----------------------------------------------------\n");
@@ -404,45 +406,45 @@ int run_command					(Memory mem1[], int* n,int rs[],int * rs_idx)
 			(*rs_idx)++;
 			break;
 		case ASSIGN:
-			// printf(">> [INFO] ASSIGN start \n");
+			 printf(">> [INFO] ASSIGN start \n");
             mem1[opern[0]].value = opern[1];
 			// printf(">> save succesfully !\n");
 			break;
 		case MOVE:
-			// printf(">> [INFO] MOVE start \n");
+			 printf(">> [INFO] MOVE start \n");
             mem1[opern[0]].value = mem1[opern[1]].value ;
 			// printf(">> save succesfully !\n");
 			break;
 		case LOAD:
-			// printf(">> [INFO] LOAD start \n");
+			 printf(">> [INFO] LOAD start \n");
 			// md ms
 			// ms에 있는 값이 주소값 -> 그 주소값으로 넘어가서 사지고 있는 값을 md로 집어 넣는다.
             mem1[opern[0]].value = mem1[mem1[opern[1]].value].value;
  			break;
 		case STORE:
-			// printf(">> [info] STORE start \n");
+			 printf(">> [info] STORE start \n");
 			//md ms
 			// ms에 있는 값이 주소값 -> md의 값을 그 주소값에 다가 집어 넣는다.
             mem1[opern[1]].value = mem1[mem1[opern[0]].value].value;
 			break;
 		case ADD	:
-			// printf(">> [info] ADD start \n");
+			printf(">> [info] ADD start \n");
 			mem1[opern[0]].value = mem1[opern[1]].value + mem1[opern[2]].value;
 			break;
 		case MINUS:
-			// printf(">> [info] MINUS start \n");
+			printf(">> [info] MINUS start \n");
 			mem1[opern[0]].value = mem1[opern[1]].value - mem1[opern[2]].value;
 			break;
 		case MULT:
-			// printf(">> [info] MULT start \n");
+			printf(">> [info] MULT start \n");
 			mem1[opern[0]].value = mem1[opern[1]].value * mem1[opern[2]].value;
 			break;
 		case MOD:
-			// printf(">> [info] MOD start \n");
+			printf(">> [info] MOD start \n");
 			mem1[opern[0]].value = mem1[opern[1]].value % mem1[opern[2]].value;
 			break;
 		case EQ	:
-			// printf(">> [info] EQ start \n");
+			printf(">> [info] EQ start \n");
             if( mem1[opern[1]].value == mem1[opern[2]].value)
 				mem1[opern[0]].value = 1;
 			else
@@ -450,25 +452,26 @@ int run_command					(Memory mem1[], int* n,int rs[],int * rs_idx)
 
 			break;
 		case LESS:
-			// printf(">> [info] LESS start \n");
+			printf(">> [info] LESS start \n");
             if( mem1[opern[1]].value < mem1[opern[2]].value)
 				mem1[opern[0]].value = 1;
 			else
 				mem1[opern[0]].value = 0;
 			break;
 		case JUMP:
-			// printf(">> [info] JUMP start \n");
+			printf(">> [info] JUMP start \n");
 			*n = opern[0];
 			return 0;
 
 			break;
 		case JUMPIF:
-			// printf(">> [info] JUMPIF start \n");
+			printf(">> [info] JUMPIF start \n");
 			if(mem1[opern[1]].value != 0)
 			{
 				*n =  opern[0]; 
 				return 0;
 			}
+			break;
 		case CNT:
 			if(mem1[opern[1]].value == mem1[opern[2]].value)
 			{
@@ -477,12 +480,14 @@ int run_command					(Memory mem1[], int* n,int rs[],int * rs_idx)
 				
 			break;
 		case TERM:
-			// printf(">> [info] TERM start \n");
+			printf(">> [info] TERM start \n");
 			return -1;
 			break;
 	
 	default:
 		printf(">> [ERROR] This command is in an unsupported format");
+		print_bye();
+		exit(0);
 		return -1;
 		break;
 	}
@@ -535,7 +540,7 @@ void print_memory				(Memory mem1[],int eoins, char onoff)
     printf("+-----------------------------------------------------------------------+\n");
 	printf("|  NUM  |      TYPE      |                     VALUE                    |\n");
 	printf("+-----------------------------------------------------------------------+\n");
-    for(int i = eoins ; i < 256; i++)
+    for(int i = eoins ; i < 255; i++)
     {
         dinum = num_of_digit(idx);
 
