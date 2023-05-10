@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_LEN 1024
+
+int main() {
+    char input[MAX_LEN];
+    unsigned char buffer[MAX_LEN/2];
+    int addr, data;
+
+    FILE *fp_in, *fp_out;
+    fp_in = fopen("result2.txt", "r");
+    fp_out = fopen("output", "wb");
+
+    if (fp_in == NULL || fp_out == NULL) {
+        printf("파일을 열 수 없습니다.\n");
+        exit(1);
+    }
+
+    while (fgets(input, MAX_LEN, fp_in) != NULL) {
+        if (sscanf(input, "%x : %2x %s", &addr, &data) == 2) {
+            buffer[addr] = data;
+        }
+    }
+
+    fwrite(buffer, sizeof(unsigned char), MAX_LEN/2, fp_out);
+
+    fclose(fp_in);
+    fclose(fp_out);
+
+    return 0;
+}
