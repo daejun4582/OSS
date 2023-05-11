@@ -3,11 +3,13 @@
 void hex_to_char(int hex, char arr[],int idx);
 
 int main() {
-    FILE* fp = fopen("a.out", "rb");
+    FILE *fp, *output_file;
+    fp = fopen("a.out", "rb");
     if (fp == NULL) {
-        printf("Failed to open file");
         return 1;
     }
+
+    output_file = fopen("out.txt", "w");
 
     unsigned char buffer[16];
     char str[20];
@@ -17,12 +19,12 @@ int main() {
 
     while ((bytesRead = fread(buffer, sizeof(unsigned char), 16, fp)) > 0) {
         t = 0;
-        printf("%08x: ", k);
+        fprintf(output_file,"%08x: ", k);
         for (size_t i = 0; i < bytesRead; i++) {
             hex_to_char(buffer[i],str,i);
-            printf("%02x", buffer[i]);
+            fprintf(output_file,"%02x", buffer[i]);
             if(t % 2 !=0)
-                printf(" ");
+                fprintf(output_file," ");
             t++;
             temp = i;
         }
@@ -32,14 +34,14 @@ int main() {
         t = 0;
         for (int i = 0; i < 16- bytesRead; i++)
         {
-            printf("  ");
+            fprintf(output_file,"  ");
             if(t % 2 !=0)
-                printf(" ");
+                fprintf(output_file," ");
             t++;
         }
 
-        printf(" %s",str);
-        printf("\n");
+        fprintf(output_file," %s",str);
+        fprintf(output_file,"\n");
 
         k += 0x10;
     }
