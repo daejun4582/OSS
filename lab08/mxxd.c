@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #define MAX_LINE_LENGTH 1000
 
@@ -167,8 +168,12 @@ void txt_to_bin(char *argv[])
         l_num += 0x10;
     }
 
+     
+
     fclose(output_file);
     fclose(fp);
+
+    chmod(argv[3], S_IRWXU);
 
 }
 
