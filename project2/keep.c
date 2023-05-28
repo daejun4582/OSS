@@ -920,6 +920,7 @@ int  restore                    (int version)
 
     copyDirectory(path,dest_path);
 
+    printf("restored as version %d\n",version);
     return 0;
 }
 
@@ -1195,7 +1196,7 @@ bool check_prerequirement       (int com_num)
     {
         if(is_initialized() == false)
         {
-            printf("[Requriements] please Do \"INITIALIZE\" First.\n");
+            printf("[Requriements] please Do \"Initialize\" First.\n");
             return false;
         }
 
@@ -1203,13 +1204,13 @@ bool check_prerequirement       (int com_num)
         {
             if(is_tracked() == false)
             {
-                printf("[Requriements] please Do \"TRACK\" First.\n");
+                printf("[Requriements] please Do \"Track\" First.\n");
                 return false;
             }
 
             if(com_num > 3 && is_stored() == false)
             {
-                printf("[Requriements] please Do \"STORE\" First.\n");
+                printf("[Requriements] please Do \"Store\" First.\n");
                 return false;
             }
         }
