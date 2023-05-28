@@ -51,6 +51,8 @@ bool track_dir                  (char path[],char track_path[]);
 
 bool track_deleted              (char target[],char track_path[]);
 
+bool is_target_new              (char target[],char track_path[]);
+
 bool is_file_in_track           (char * target, char * file_name);
 
 bool append_to_file             (char * file_path, char * content);
@@ -112,6 +114,8 @@ int find_com_num                (char command[]);
 void print_keep                 ();
 
 void print_bye                  ();
+
+bool is_digit                   (char a[]);
 
 bool is_char                    (char a[]);
 
@@ -359,6 +363,13 @@ int  track                      (char target[], char track_path[])
     }
 
 
+    if(is_target_new(target,track_path))
+    {
+        printf("Already Tracked File\n");
+        return 1;
+    }
+
+
     if(S_ISREG(buf.st_mode))
         track_regular(target,track_path,buf);
     else if(S_ISDIR(buf.st_mode))
@@ -471,6 +482,42 @@ bool track_deleted              (char target[],char track_path[])
     free(content);   
     
     return true;
+}
+
+bool is_target_new              (char target[],char track_path[])
+{
+    bool check = false;
+    fp_track = fopen(track_path, "r") ;
+
+    if(fp_track == NULL)
+        return 1;
+
+    char * s = 0x0,* s_copy ;
+
+	while ((s = read_a_line())) {
+        s_copy = (char*) malloc(sizeof(char) * 1000);
+        strcat(s_copy,s);
+        char * p = strtok(s_copy," ");    
+        if(strcmp(p,target) == 0)
+        {
+            if(p != NULL)
+            {
+                p = strtok(NULL," ");
+                if( is_digit(p) == true)
+                {
+                    check = true;
+                    break;
+                }
+            }
+        }
+
+		free(s) ;
+        free(s_copy);
+	}
+
+    fclose(fp_track);
+
+    return check;
 }
 
 bool is_file_in_track           (char * target, char * file_name)
@@ -1345,6 +1392,20 @@ void print_bye                  ()
     printf("|   _|\"\"\"\"\"| _| \"\"\" | _|\"\"\"\"\"|   |\n");
     printf("|   \"`-0-0-' \"`-0-0-' \"`-0-0-'   |\n");
     printf("*--------------------------------*\n");
+}
+
+bool is_digit                   (char a[])
+{
+    for(int i = 0; i < strlen(a); i++)
+    {
+        for(int j = '0'; j <= '9'; j++)
+        {
+            if(a[i] == j)
+                return true;
+        }
+    }
+
+    return false;
 }
 
 bool is_char                    (char a[])
