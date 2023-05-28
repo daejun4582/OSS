@@ -43,7 +43,7 @@ bool delete_specific_in_file    (char * check);
 
 
 /*----------------for track -----------------*/
-int  track                      (char target[], char track_path[]);
+int  track                      (char target[], char track_path[],int signal);
 
 bool track_regular              (char target[], char track_path[], struct stat buf);
 
@@ -162,7 +162,7 @@ int run_keep                    (int argc, char *argv[])
             check = initialize();
             break;
         case TRACK:
-            check = track(argv[2],track_path);
+            check = track(argv[2],track_path,1);
             break;
         case UNTRACK:
             check = untrack(argv[2],track_path);
@@ -338,7 +338,7 @@ bool delete_specific_in_file    (char * check)
 }
 
 
-int  track                      (char target[], char track_path[])
+int  track                      (char target[], char track_path[],int signal)
 {
 
     char * full_path;
@@ -363,7 +363,7 @@ int  track                      (char target[], char track_path[])
     }
 
 
-    if(is_target_new(target,track_path))
+    if(is_target_new(target,track_path) && signal == 1)
     {
         printf("Already Tracked File\n");
         return 1;
@@ -797,7 +797,7 @@ bool update_track_files         ()
         if(result == -1)
             track_deleted(p,track_path);
         else
-            track(p,track_path);
+            track(p,track_path,2);
     }
 
     
