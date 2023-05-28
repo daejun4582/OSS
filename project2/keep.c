@@ -131,7 +131,6 @@ int list_dir                    (char * dirpath,char * check);
 
 int main                        (int argc, char *argv[])
 {   
-    
     if(run_keep(argc,argv) != 0)
         EXIT_FAILURE;
 
@@ -150,11 +149,21 @@ int run_keep                    (int argc, char *argv[])
 
     sprintf(track_path,"%s/%s",cwd,".keep/tracking-files");
 
+    if(argc == 1)
+    {
+        printf("Please Type the Command\n");
+        exit(1);
+    }
+
     com_num = find_com_num(argv[1]);
 
 
     if(!check_arg_count(com_num,argc)  || !check_prerequirement(com_num))
-        return 1;
+    {
+        printf("Invalid Number of Command\n");
+        exit(1);
+    }
+        
 
     switch (com_num)
     {
@@ -1188,12 +1197,6 @@ void print_version              (char number[],FILE *f)
 
 bool check_arg_count            (int com_num,int argc)
 {
-
-    if(argc == 0)
-    {
-        printf("Please Type the Command\n");
-        exit(1);
-    }
 
     switch (com_num)
     {
