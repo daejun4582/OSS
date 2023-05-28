@@ -160,7 +160,7 @@ int run_keep                    (int argc, char *argv[])
 
     if(!check_arg_count(com_num,argc)  || !check_prerequirement(com_num))
     {
-        printf("Invalid Number of Command\n");
+        printf("Invalid Command\n");
         exit(1);
     }
         
@@ -274,10 +274,10 @@ int initialize                  ()
     // }
 
 
-	char* current_path = getenv("PATH");
-    char new_path[1024];
-    snprintf(new_path, sizeof(new_path), "%s:.", current_path);
-    setenv("PATH", new_path, 1);
+	// char* current_path = getenv("PATH");
+    // char new_path[1024];
+    // snprintf(new_path, sizeof(new_path), "%s:.", current_path);
+    // setenv("PATH", new_path, 1);
 
     print_keep();
     printf("\n\t   Initialization Successful!\n\n");
@@ -287,11 +287,7 @@ int initialize                  ()
 
 int  untrack                    (char target[],char track_path[])
 {
-    if(is_initialized() == false)
-    {   
-        printf("please Do initialize first\n");
-        return 2;
-    }
+
     if(is_file_in_track(target,track_path))
         delete_specific_in_file(target);
     else
@@ -330,7 +326,7 @@ bool delete_specific_in_file    (char * check)
         strcpy(line_copy,line);
         char * p = strtok(line_copy," ");
 
-        if (strcmp(p,check) == 0) 
+        if (strncmp(p,check,strlen(check)) == 0) 
             continue;   
         else 
             fprintf(tempFile, "%s", line);
@@ -543,7 +539,7 @@ bool is_file_in_track           (char * target, char * file_name)
         s_copy = (char*) malloc(sizeof(char) * 1000);
         strcat(s_copy,s);
         char * p = strtok(s_copy," ");    
-        if(strcmp(p,target) == 0)
+        if(strncmp(p,target,strlen(target)) == 0)
         {
             check = true;
             break;
@@ -596,7 +592,7 @@ bool edit_specific_in_file      (char * content, char * check)
         strcpy(line_copy,line);
         char * p = strtok(line_copy," ");
 
-        if (strcmp(p,check) == 0) 
+        if (strncmp(p,check,strlen(check)) == 0) 
         {
             fprintf(tempFile, "%s", content);
         } 
@@ -1238,7 +1234,7 @@ bool check_prerequirement       (int com_num)
     if(com_num == INITIALIZE && is_initialized())
     {
         printf("Already Initialized.\n");
-        return false;
+        exit(1);
     }
         
 
