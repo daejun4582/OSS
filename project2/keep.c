@@ -83,9 +83,12 @@ int  restore                    (int version);
 
 bool deleteFiles                (char path[]);
 
+bool cover_file                 (int version);
+
 void copyFile                   (char* sourcePath, char* destinationPath);
 
 void copyDirectory              (char* sourcePath, char* destinationPath);
+
 /*---------------------------------------------*/
 
 /*---------------for versions------------------*/
@@ -307,7 +310,7 @@ bool delete_specific_in_file    (char * check)
 
     if (f == NULL) 
     {
-        printf("파일을 열 수 없습니다.");
+        printf("Impossible to open the file.\n");
         return false;
     }
 
@@ -315,7 +318,7 @@ bool delete_specific_in_file    (char * check)
 
     if (tempFile == NULL) 
     {
-        printf("임시 파일을 열 수 없습니다.");
+        printf("Impossible to open the temp file.\n");
         return false;
     }
 
@@ -573,7 +576,7 @@ bool edit_specific_in_file      (char * content, char * check)
 
     if (f == NULL) 
     {
-        printf("파일을 열 수 없습니다.");
+        printf("Impossible to open file.");
         return false;
     }
 
@@ -581,7 +584,7 @@ bool edit_specific_in_file      (char * content, char * check)
 
     if (tempFile == NULL) 
     {
-        printf("임시 파일을 열 수 없습니다.");
+        printf("Impossible to open temp file.");
         return false;
     }
 
@@ -639,7 +642,7 @@ bool check_store_available      ()
 
     if (f == NULL) 
     {
-        printf("파일을 열 수 없습니다.");
+        printf("Impossible to open file.");
         return false;
     }    
 
@@ -950,6 +953,13 @@ bool check_object_deleted       (char object[])
 
 int  restore                    (int version)
 {   
+
+    if(check_store_available())
+    {
+        printf("Refuse the Restore command.\n");
+        return 1;
+    }
+
     char *path,*dest_path;
 
     path = (char*) malloc(sizeof(char) * 1000);
@@ -972,8 +982,50 @@ int  restore                    (int version)
 
     copyDirectory(path,dest_path);
 
+    if(cover_file(version) == false)
+    {
+        printf("Error in cover file\n");
+        exit(1);
+    }
+
     printf("restored as version %d\n",version);
     return 0;
+}
+
+bool cover_file                 (int version)
+{
+    char * vf_path;
+
+    vf_path = (char *) malloc (sizeof(char) * 1000);
+
+    sprintf(vf_path,".keep/%d/tracking-files",version);
+
+    FILE *f = fopen(".keep/tracking-files", "w");
+    FILE *vf = fopen(vf_path, "r");  
+
+    if (f == NULL) 
+    {
+        printf("Impossible to open file.");
+        return false;
+    }
+
+    if (vf == NULL) 
+    {
+        printf("Impossible to open file.");
+        return false;
+    }
+
+    char line[1000],line_copy[1000];
+
+    while (fgets(line, 1000, vf) != NULL) 
+    {
+        fprintf(f,"%s",line);
+    }
+
+    fclose(f);
+    fclose(vf);
+
+    return true;
 }
 
 bool deleteFiles                (char path[]) 
